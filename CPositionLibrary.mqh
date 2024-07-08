@@ -19,6 +19,7 @@ private:
 public:
     ulong magic;                         // マジックナンバー
     double lots;                         // エントリー時のロット数
+    double lotRatio;                     // ロット数の比率（自動ナンピン時）
     double profit;                       // プロフィットの価格差（pips）
     double stoploss;                     // ストップロスの価格差（pips）
     double trailing_stop;                // トレイリングストップの価格差（≠pips）
@@ -44,6 +45,7 @@ public:
 
         magic = 0;
         lots = 0.01;
+        lotRatio = 1.0;
         profit = 0.0;
         stoploss = 0.0;
         trailing_stop = 0.0;
@@ -227,6 +229,59 @@ public:
             }
         }
     }
+
+    void GetPositionWithMaxLoss(ulong &tickets[], int positionType)
+    {
+        double positionPrice[];
+        int priceCounter = 0;
+        int counter = 0;
+
+        ArrayResize(positionPrice, GetPositionCount(positionType));
+
+        for (int i = 0; i < PositionsTotal(); i++)
+        {
+            m_position.SelectByIndex(i);
+            if (m_position.Symbol() != Symbol() || (m_position.Magic() != magic && !is_manual_orders_and_positions))
+            {
+                continue;
+            }
+            if (m_position.PositionType() == positionType)
+            {
+                positionPrice[priceCounter] = m_position.PriceOpen();
+                priceCounter++;
+            }
+        }
+
+        // 価格を昇順にソート
+        ArraySort(positionPrice);
+        if (positionType == POSITION_TYPE_BUY)
+        {
+            ArrayReverse(positionPrice);
+        }
+
+        for (int i = 0; i < PositionsTotal(); i++)
+        {
+            m_position.SelectByIndex(i);
+            if (m_position.Symbol() != Symbol() || (m_position.Magic() != magic && !is_manual_orders_and_positions))
+            {
+                continue;
+            }
+            double price = m_position.PriceOpen();
+            for (int j = 0; j < max_manual_position; j++)
+            {
+                if (positionPrice[j] == price)
+                {
+                    tickets[counter] = m_position.Ticket();
+                    counter++;
+                    break;
+                }
+            }
+            if (counter == max_manual_position)
+            {
+                break;
+            }
+        }
+    }
     //+------------------------------------------------------------------+
     //| 現在のポジション数を返す                                        |
     //+------------------------------------------------------------------+
@@ -366,6 +421,12 @@ public:
             return;
         }
 
+        // 最大損失のポジションからロット数を計算する
+        GetPositionWithMaxLoss(tickets, positionType);
+        m_position.SelectByTicket(tickets[0]);
+        double currentLots = m_position.Volume();
+        volume = currentLots * MathPow(lotRatio, positionCount);
+
         MqlTradeRequest request;
         MqlTradeResult result;
         ZeroMemory(request);
@@ -387,6 +448,57 @@ public:
         {
             Print("Failed to add order. Price: ", positionType == POSITION_TYPE_BUY ? m_symbol.Ask() : m_symbol.Bid(),
                   " Error: ", GetLastError());
+        }
+    }
+
+    //+------------------------------------------------------------------+
+    // 一括で最も不利なポジションを起点にしたSLを設定する
+    //+------------------------------------------------------------------+
+    void SetStopLoss(double slPips, int positionType)
+    {
+        if (slPips <= 0)
+        {
+            return;
+        }
+
+        double stopPrice = 0.0;
+        ulong tickets[];
+
+        ArrayResize(tickets, max_manual_position);
+        GetPositionWithMaxLoss(tickets, positionType);
+        m_position.SelectByTicket(tickets[0]);
+
+        for (int i = 0; i < ArraySize(tickets); i++)
+        {
+            m_position.SelectByTicket(tickets[i]);
+            if (m_position.StopLoss() > 0.0)
+            {
+                continue;
+            }
+            if (m_position.PositionType() == POSITION_TYPE_BUY)
+            {
+                stopPrice = NormalizeDouble(m_position.PriceOpen() - slPips * adjusted_point,
+                                            m_symbol.Digits());
+            }
+            else if (m_position.PositionType() == POSITION_TYPE_SELL)
+            {
+                stopPrice = NormalizeDouble(m_position.PriceOpen() + slPips * adjusted_point,
+                                            m_symbol.Digits());
+            }
+        }
+
+        for (int i = 0; i < PositionsTotal(); i++)
+        {
+            m_position.SelectByIndex(i);
+            if (m_position.PositionType() != positionType)
+            {
+                continue;
+            }
+            if (m_position.Symbol() != Symbol() || (m_position.Magic() != magic && !is_manual_orders_and_positions))
+            {
+                continue;
+            }
+            m_trade.PositionModify(m_position.Ticket(), stopPrice, m_position.TakeProfit());
         }
     }
 };

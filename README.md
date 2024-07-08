@@ -32,9 +32,11 @@ MT5用のライブラリ
 - StopLossAll()でプログラム上に設定されているSLに到達している場合、クローズする
 - TrailingStop()でプログラム上に設定されているTrailingStopに到達している場合、3pipsを加算してSLを設定する。
 - GetPositionWithMaxProfit()で最大の利益が出ているticketidを取得する
+- GetPositionWithMaxLoss()で最大の損失が出ているticketidを取得する
 - GetPositionCount()で対象のポジション数を返す
 - SetPositionTakeProfit()で不利なポジションにTPを設定する
 - AutoAddPosition()で設定値に従ってナンピンをする
+- SetStopLoss()で最も不利なポジションを起点に計算された値でSLを一括で設定する
 
 ## ライセンス
 GPL-3
