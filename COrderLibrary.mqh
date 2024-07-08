@@ -23,14 +23,13 @@ public:
     int digits_adjust;                   // 価格差の調整値
     string trade_comment;                // トレードコメント
     bool is_manual_orders_and_positions; // マニュアルオーダーとポジションも操作するか
-    int max_manual_position;             // 有利なポジションを残す数
 
     //--- constructor
     COrderLibrary(void)
     {
     }
 
-    void init(CSymbolInfo &symbol, CTrade &trade, CPositionInfo &position)
+    void Init(CSymbolInfo &symbol, CTrade &trade, CPositionInfo &position)
     {
         m_symbol = symbol;
         m_trade = trade;
@@ -40,7 +39,6 @@ public:
         slippage = 3.0;
         trade_comment = "";
         is_manual_orders_and_positions = false;
-        max_manual_position = 1;
 
         digits_adjust = 10;
         if (m_symbol.Digits() == 3 || m_symbol.Digits() == 5)
@@ -54,7 +52,7 @@ public:
     // priceが現在価格よりも上であればSELL、現在価格よりも下であればBUYの指値をMaxOrdersの個数分、均等に指値を入れる
     //|
     //+------------------------------------------------------------------+
-    void zoneEntry(double startPrice, double endPrice, double lots, double lotRatio, int max_orders, double addtionalSl)
+    void ZoneEntry(double startPrice, double endPrice, double lots, double lotRatio, int max_orders, double addtionalSl)
     {
         m_symbol.RefreshRates();
 
@@ -120,7 +118,7 @@ public:
                 request.type = ORDER_TYPE_BUY_LIMIT;
             }
 
-            if (isPendingOrderExist(target_price))
+            if (IsPendingOrderExist(target_price))
             {
                 continue;
             }
@@ -143,7 +141,7 @@ public:
     //+------------------------------------------------------------------+
     //| 指値をすべて削除する                                               |
     //+------------------------------------------------------------------+
-    void removeAll()
+    void RemoveAll()
     {
         int totalOrders = OrdersTotal(); // 保留中の注文の総数を取得
         for (int i = totalOrders - 1; i >= 0; i--)
@@ -178,7 +176,7 @@ public:
     //+------------------------------------------------------------------+
     //| 既に指値が設定されているか確認する                                  |
     //+------------------------------------------------------------------+
-    bool isPendingOrderExist(double price)
+    bool IsPendingOrderExist(double price)
     {
         for (int i = 0; i < OrdersTotal(); i++)
         {

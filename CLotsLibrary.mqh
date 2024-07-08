@@ -24,7 +24,7 @@ public:
     {
     }
 
-    void init(bool isAutoLots, double fixedLots, CMoneyFixedMargin &money, CTrade &trade, CSymbolInfo &symbol)
+    void Init(bool isAutoLots, double fixedLots, CMoneyFixedMargin &money, CTrade &trade, CSymbolInfo &symbol)
     {
         is_autolots = isAutoLots;
         fixed_lots = fixedLots;

@@ -36,7 +36,7 @@ public:
     {
     }
 
-    void init(CSymbolInfo &symbol, CTrade &trade, CPositionInfo &position)
+    void Init(CSymbolInfo &symbol, CTrade &trade, CPositionInfo &position)
     {
         m_symbol = symbol;
         m_trade = trade;
@@ -62,7 +62,7 @@ public:
     }
 
     //--- TakeProfit function
-    void takeProfitAll()
+    void TakeProfitAll()
     {
         // プロフィットをとる
         if (profit > 0)
@@ -93,7 +93,7 @@ public:
     }
 
     //--- StopLoss function
-    void stopLossAll()
+    void StopLossAll()
     {
         if (stoploss > 0)
         {
@@ -123,7 +123,7 @@ public:
     }
 
     //-- TrailingStop function
-    void trailingStop()
+    void TrailingStop()
     {
         if (trailing_stop <= 0)
         {
@@ -175,13 +175,13 @@ public:
         }
     }
 
-    void getPositionWithMaxProfit(ulong &tickets[], int positionType)
+    void GetPositionWithMaxProfit(ulong &tickets[], int positionType)
     {
         double positionPrice[];
         int priceCounter = 0;
         int counter = 0;
 
-        ArrayResize(positionPrice, getPositionCount(positionType));
+        ArrayResize(positionPrice, GetPositionCount(positionType));
 
         for (int i = 0; i < PositionsTotal(); i++)
         {
@@ -230,7 +230,7 @@ public:
     //+------------------------------------------------------------------+
     //| 現在のポジション数を返す                                        |
     //+------------------------------------------------------------------+
-    int getPositionCount(int positionType)
+    int GetPositionCount(int positionType)
     {
         int positionCount = 0;
         for (int i = 0; i < PositionsTotal(); i++)
@@ -250,15 +250,15 @@ public:
     //+------------------------------------------------------------------+
     //| ポジションが２個以上になった場合、不利なポジションに3pipsのTPを設定する|
     //+------------------------------------------------------------------+
-    void setPositionTakeProfit(int positionType)
+    void SetPositionTakeProfit(int positionType)
     {
         ulong tickets[];
         ArrayResize(tickets, max_manual_position);
 
-        int buyPositionCount = getPositionCount(positionType);
+        int buyPositionCount = GetPositionCount(positionType);
         if (buyPositionCount >= 2)
         {
-            getPositionWithMaxProfit(tickets, positionType);
+            GetPositionWithMaxProfit(tickets, positionType);
             for (int i = 0; i < PositionsTotal(); i++)
             {
                 m_position.SelectByIndex(i);
@@ -310,10 +310,10 @@ public:
     //+------------------------------------------------------------------+
     //| 現在の最も有利なポジションと比較してdistance以上のマイナスpipsの場合は追加エントリーを行う|
     //+------------------------------------------------------------------+
-    void autoAddPosition(int positionType)
+    void AutoAddPosition(int positionType)
     {
         m_symbol.RefreshRates();
-        int positionCount = getPositionCount(positionType);
+        int positionCount = GetPositionCount(positionType);
         if (positionCount == 0)
         {
             Print("No position found, not add order.");
@@ -323,7 +323,7 @@ public:
         ulong tickets[];
         ArrayResize(tickets, max_manual_position);
 
-        getPositionWithMaxProfit(tickets, positionType);
+        GetPositionWithMaxProfit(tickets, positionType);
 
         ulong profitTicket = 0;
         double profitVol = 0.0;
