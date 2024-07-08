@@ -62,7 +62,7 @@ public:
     }
 
     //--- TakeProfit function
-    void TakeProfitAll()
+    void takeProfitAll()
     {
         // プロフィットをとる
         if (profit > 0)
@@ -93,7 +93,7 @@ public:
     }
 
     //--- StopLoss function
-    void StopLossAll()
+    void stopLossAll()
     {
         if (stoploss > 0)
         {
@@ -123,7 +123,7 @@ public:
     }
 
     //-- TrailingStop function
-    void TrailingStop()
+    void trailingStop()
     {
         if (trailing_stop <= 0)
         {
